@@ -24,6 +24,6 @@ def main(file_path1, file_path2, question):
 if __name__ == "__main__":
     file_path1 = "C:\\Users\\Sam\\Desktop\\db 1.xlsx"
     file_path2 = "C:\\Users\\Sam\\Desktop\\db 2.xlsx"
-    question = "what are the ratios you can calculate for Japan?"
+    question = "summarise the content of each file?"
 
     main(file_path1, file_path2, question)

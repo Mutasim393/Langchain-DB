@@ -1,6 +1,7 @@
 import pandas as pd
 import tabula
 import docx
+import pdfplumber
 from sqlalchemy import create_engine
 
 class FileHandler:
@@ -18,7 +19,7 @@ class FileHandler:
             return self.load_pdf()
         elif self.file_path.endswith('.docx'):
             return self.load_docx()
-        elif self.file_path.startswith('sql://'):  # Assuming SQL files start with a specific protocol
+        elif self.file_path.startswith('sql://'):
             connection_string, query = self.extract_sql_params(self.file_path)
             return self.load_sql(connection_string, query)
         else:
@@ -45,31 +46,26 @@ class FileHandler:
     def load_pdf(self):
         """Read PDF file and return a DataFrame."""
         try:
-            df_list = tabula.read_pdf(self.file_path, pages='all', multiple_tables=True)
-            return pd.concat(df_list, ignore_index=True)
+            with pdfplumber.open(self.file_path) as pdf:
+                text_data = []
+                for page in pdf.pages:
+                    text_data.append(page.extract_text())
+            text_combined = "\n".join(text_data)
+            return pd.DataFrame({'Content': [text_combined]})
         except Exception as e:
-            print(f"Error reading PDF file: {e}")
-            return None
+            print(f"Error reading PDF file {self.file_path}: {e}")
+            return pd.DataFrame()
 
     def load_docx(self):
         """Read DOCX file and return a DataFrame."""
         try:
             doc = docx.Document(self.file_path)
-            data = []
-            for table in doc.tables:
-                keys = None
-                for i, row in enumerate(table.rows):
-                    text = [cell.text.strip() for cell in row.cells]
-                    if i == 0:
-                        keys = tuple(text)
-                        continue
-                    if keys:
-                        row_data = dict(zip(keys, text))
-                        data.append(row_data)
-            return pd.DataFrame(data)
+            paragraphs = [para.text for para in doc.paragraphs]
+            text_combined = "\n".join(paragraphs)
+            return pd.DataFrame({'Content': [text_combined]})
         except Exception as e:
             print(f"Error reading DOCX file: {e}")
-            return None
+            return pd.DataFrame()
 
     def load_sql(self, connection_string, query):
         """Read SQL database and return a DataFrame."""
@@ -82,10 +78,6 @@ class FileHandler:
 
     def extract_sql_params(self, file_path):
         """Extract SQL connection string and query from the file path."""
-        # Example implementation: this function should be customized
-        # according to how you store or pass SQL connection details.
-        # For this example, we're just simulating with dummy values.
-        # This part needs to be adapted based on your specific requirements.
-        connection_string = 'sqlite:///example.db'  # Replace with your actual connection string
-        query = 'SELECT * FROM table_name'  # Replace with your actual SQL query
+        connection_string = 'sqlite:///example.db'
+        query = 'SELECT * FROM table_name'
         return connection_string, query
