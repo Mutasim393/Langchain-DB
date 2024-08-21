@@ -13,17 +13,18 @@ class VoiceAssistant:
     def listen(self):
         """Capture voice input from the user and convert it to text."""
         with self.microphone as source:
-            print("Say something!")
+            print("How can I help you today?")
+            self.speak("How can I help you today?")
             audio = self.recognizer.listen(source)
         try:
             text = self.recognizer.recognize_google(audio, language=self.language)
-            print(f"You said: {text}")
+            # print(f"You said: {text}")  # Debug print, comment out for user output
             return text
         except sr.UnknownValueError:
-            print("Google Speech Recognition could not understand the audio")
+            self.speak("Sorry, I could not understand the audio.")
             return None
         except sr.RequestError as e:
-            print(f"Could not request results from Google Speech Recognition; {e}")
+            self.speak(f"Sorry, there was an error with the speech recognition service: {e}")
             return None
 
     def standardize_language(self, text):
@@ -49,26 +50,10 @@ class VoiceAssistant:
         if user_text:
             # Standardize the captured text
             standardized_text = self.standardize_language(user_text)
-            print(f"Standardized Query: {standardized_text}")
             return standardized_text
         else:
             return None
 
     def respond(self, response_text):
         """Respond to the user by speaking the text out loud."""
-        print(f"Response: {response_text}")
         self.speak(response_text)
-
-# Usage example
-if __name__ == "__main__":
-    # Example: Listening for input in Spanish ("es-ES")
-    voice_assistant = VoiceAssistant(language="es-ES")
-    standardized_query = voice_assistant.get_query()
-
-    if standardized_query:
-        # Respond to the user
-        response_text = f"You asked: {standardized_query}. Let me help with that."
-        voice_assistant.respond(response_text)
-        # Proceed with the standardized query using the existing QueryHandler
-        # question = standardized_query
-        # ... continue with the existing logic to handle the query
