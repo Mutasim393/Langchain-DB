@@ -8,4 +8,6 @@ C.docx is notes file
 
 .gitinore is created as per instructions* 
 
-Voice not tested as of 19/08/2024
+Voice tested and running*
+
+* SQL does not like other formats
